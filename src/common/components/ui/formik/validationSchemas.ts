@@ -7,6 +7,7 @@ import { NetworkConfigurationValues, HostSubnets } from '../../../types/clusters
 import { NO_SUBNET_SET } from '../../../config/constants';
 import { ProxyFieldsType } from '../../../types';
 import { trimCommaSeparatedList, trimSshPublicKey } from './utils';
+import { T } from 'lodash/fp';
 
 const ALPHANUMBERIC_REGEX = /^[a-zA-Z0-9]+$/;
 const CLUSTER_NAME_REGEX = /^[a-z]([-a-z0-9]*[a-z0-9])?$/;
@@ -451,3 +452,30 @@ export const locationValidationSchema = Yup.string()
     message: LOCATION_VALIDATION_MESSAGES.INVALID_VALUE,
     excludeEmptyString: true,
   });
+
+export const getIpv4AddressValidationSchema = (fieldName: string) => {
+  return Yup.string().test(fieldName, 'Value "${value}" is not a valid IPv4 address.', (value) => {
+    if (!value) {
+      return true;
+    }
+    return Address4.isValid(value);
+  });
+};
+
+export const getIpv6AddressValidationSchema = (fieldName: string) => {
+  return Yup.string().test(fieldName, 'Value "${value}" is not a valid IPv6 address.', (value) => {
+    if (!value) {
+      return true;
+    }
+    return Address6.isValid(value);
+  });
+};
+
+export const getIpAddressValidationSchema = (
+  fieldName: string,
+  protocolVersion: 'ipv4' | 'ipv6',
+) => {
+  return protocolVersion === 'ipv4'
+    ? getIpv4AddressValidationSchema(fieldName)
+    : getIpv6AddressValidationSchema(fieldName);
+};

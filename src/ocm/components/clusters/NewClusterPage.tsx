@@ -19,6 +19,7 @@ import { ClusterDefaultConfigurationProvider } from '../clusterConfiguration/Clu
 import NewClusterWizard from '../clusterWizard/NewClusterWizard';
 import { routeBasePath } from '../../config';
 import { FeatureSupportLevelProvider } from '../featureSupportLevels';
+import ClusterWizardContextProvider from '../clusterWizard/ClusterWizardContextProvider';
 const loadingUI = (
   <PageSection variant={PageSectionVariants.light} isFilled>
     <LoadingState />
@@ -57,7 +58,9 @@ const NewClusterPage: React.FC = () => {
             </TextContent>
           </PageSection>
           <PageSection variant={PageSectionVariants.light} isFilled>
-            <NewClusterWizard />
+            <ClusterWizardContextProvider>
+              <NewClusterWizard />
+            </ClusterWizardContextProvider>
           </PageSection>
         </FeatureSupportLevelProvider>
       </ClusterDefaultConfigurationProvider>

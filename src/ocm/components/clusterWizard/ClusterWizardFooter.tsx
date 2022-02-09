@@ -12,7 +12,9 @@ import {
 } from '../../../common';
 import { routeBasePath } from '../../config/routeBaseBath';
 import { wizardStepsValidationsMap } from '../clusterWizard/wizardTransition';
-import ClusterWizardContext from '../clusterWizard/ClusterWizardContext';
+import ClusterWizardContext, {
+  useClusterWizardContext,
+} from '../clusterWizard/ClusterWizardContext';
 import ClusterWizardStepValidationsAlert from '../../../common/components/clusterWizard/ClusterWizardStepValidationsAlert';
 
 type ClusterValidationSectionProps = {
@@ -21,7 +23,7 @@ type ClusterValidationSectionProps = {
 };
 
 const ValidationSection = ({ cluster, errorFields = [] }: ClusterValidationSectionProps) => {
-  const { currentStepId } = React.useContext(ClusterWizardContext);
+  const { currentStepId } = useClusterWizardContext();
   const validationsInfo = cluster && selectClusterValidationsInfo(cluster);
   return (
     <AlertGroup>
@@ -32,7 +34,7 @@ const ValidationSection = ({ cluster, errorFields = [] }: ClusterValidationSecti
           isInline
         >
           The following fields are invalid or missing:{' '}
-          {errorFields.map((field: string) => CLUSTER_FIELD_LABELS[field]).join(', ')}.
+          {errorFields.map((field: string) => CLUSTER_FIELD_LABELS[field] || field).join(', ')}.
         </Alert>
       )}
       {cluster && (

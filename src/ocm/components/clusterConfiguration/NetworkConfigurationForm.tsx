@@ -22,7 +22,9 @@ import {
 import { HostSubnet, NetworkConfigurationValues } from '../../../common/types/clusters';
 import { updateClusterBase } from '../../reducers/clusters/currentClusterSlice';
 import { canNextNetwork } from '../clusterWizard/wizardTransition';
-import ClusterWizardContext from '../clusterWizard/ClusterWizardContext';
+import ClusterWizardContext, {
+  useClusterWizardContext,
+} from '../clusterWizard/ClusterWizardContext';
 import ClusterWizardFooter from '../clusterWizard/ClusterWizardFooter';
 import ClusterWizardNavigation from '../clusterWizard/ClusterWizardNavigation';
 import { getErrorMessage, handleApiError } from '../../api';
@@ -43,7 +45,7 @@ const NetworkConfigurationForm: React.FC<{
     'clusterNetworkHostPrefix',
   ]);
   const { addAlert, clearAlerts, alerts } = useAlerts();
-  const { setCurrentStepId } = React.useContext(ClusterWizardContext);
+  const { moveNext, moveBack } = useClusterWizardContext();
   const dispatch = useDispatch();
   const hostSubnets = React.useMemo(() => getHostSubnets(cluster), [cluster]);
   const initialValues = React.useMemo(
@@ -188,8 +190,8 @@ const NetworkConfigurationForm: React.FC<{
             errorFields={errorFields}
             isSubmitting={isSubmitting}
             isNextDisabled={dirty || !canNextNetwork({ cluster })}
-            onNext={() => setCurrentStepId('review')}
-            onBack={() => setCurrentStepId('host-discovery')}
+            onNext={moveNext}
+            onBack={moveBack}
           />
         );
         return (

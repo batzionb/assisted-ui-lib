@@ -1,17 +1,31 @@
-import { Cluster } from '../../../common/api/types';
+import { Cluster, InfraEnv } from '../../../common/api/types';
 import {
   getAllClusterWizardSoftValidationIds,
   getWizardStepClusterStatus,
   WizardStepsValidationMap,
   WizardStepValidationMap,
 } from '../../../common/components/clusterWizard/validationsInfoUtils';
+import { StaticIpInfo } from '../../services';
+import StaticIpDataService from '../../services/StaticIpDataService';
 
-export type ClusterWizardStepsType = 'cluster-details' | 'host-discovery' | 'networking' | 'review';
+export type ClusterWizardStepsType =
+  | 'cluster-details'
+  | 'static-ip'
+  | 'static-ip-network-wide-configurations'
+  | 'static-ip-host-configurations'
+  | 'host-discovery'
+  | 'networking'
+  | 'review';
 export type ClusterWizardFlowStateType = Cluster['status'] | 'new';
 
 export const getClusterWizardFirstStep = (
+  staticIpInfo: StaticIpInfo | null,
   state?: ClusterWizardFlowStateType,
 ): ClusterWizardStepsType => {
+  if (staticIpInfo !== null && !staticIpInfo.isDataComplete) {
+    //user selected static ip host network configuration, but didn't fill in the details yet, or only filled in the network wide configurations
+    return 'static-ip-network-wide-configurations';
+  }
   switch (state) {
     case 'ready':
       return 'review';
@@ -95,6 +109,9 @@ const reviewStepValidationsMap: WizardStepValidationMap = {
 
 export const wizardStepsValidationsMap: WizardStepsValidationMap<ClusterWizardStepsType> = {
   'cluster-details': clusterDetailsStepValidationsMap,
+  'static-ip': clusterDetailsStepValidationsMap,
+  'static-ip-network-wide-configurations': clusterDetailsStepValidationsMap,
+  'static-ip-host-configurations': clusterDetailsStepValidationsMap,
   'host-discovery': hostDiscoveryStepValidationsMap,
   networking: networkingStepValidationsMap,
   review: reviewStepValidationsMap,
@@ -127,3 +144,7 @@ export const canNextHostDiscovery = ({ cluster }: TransitionProps): boolean =>
 export const canNextNetwork = ({ cluster }: TransitionProps): boolean =>
   getWizardStepClusterStatus('networking', wizardStepsValidationsMap, cluster, cluster.hosts) ===
   'ready';
+
+export const canNextStaticIp = (infraEnv: InfraEnv): boolean => {
+  return StaticIpDataService.isValidStaticIp(infraEnv);
+};

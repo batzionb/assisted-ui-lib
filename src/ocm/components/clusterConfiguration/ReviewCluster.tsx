@@ -6,7 +6,9 @@ import { RenderIf } from '../../../common/components/ui/';
 import { VSPHERE_CONFIG_LINK, ClusterValidations, HostsValidations } from '../../../common';
 import { selectClusterNetworkCIDR } from '../../../common/selectors/clusterSelectors';
 import { ClusterFeatureSupportLevelsDetailItem } from '../featureSupportLevels';
-import ClusterWizardContext from '../clusterWizard/ClusterWizardContext';
+import ClusterWizardContext, {
+  useClusterWizardContext,
+} from '../clusterWizard/ClusterWizardContext';
 import {
   allClusterWizardSoftValidationIds,
   ClusterWizardStepsType,
@@ -34,7 +36,7 @@ const PlatformIntegrationNote: React.FC<{}> = () => {
 };
 
 const ReviewCluster: React.FC<{ cluster: Cluster }> = ({ cluster }) => {
-  const { setCurrentStepId } = React.useContext(ClusterWizardContext);
+  const { setCurrentStepId } = useClusterWizardContext();
   return (
     <DetailList>
       <DetailItem

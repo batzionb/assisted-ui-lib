@@ -16,6 +16,7 @@ import {
   AlertsContextProvider,
   AddHostsContextProvider,
   TechnologyPreview,
+  InfraEnv,
 } from '../../../common';
 import ClusterDetail from '../clusterDetail/ClusterDetail';
 import CancelInstallationModal from '../clusterDetail/CancelInstallationModal';
@@ -29,6 +30,8 @@ import { useClusterPolling, useFetchCluster } from './clusterPolling';
 import { DiscoveryImageModal } from '../clusterConfiguration/discoveryImageModal';
 import { isSingleClusterMode, routeBasePath } from '../../config';
 import { FeatureSupportLevelProvider } from '../featureSupportLevels';
+import ClusterWizardContextProvider from '../clusterWizard/ClusterWizardContextProvider';
+import useInfraEnv from '../../hooks/useInfraEnv';
 
 type MatchParams = {
   clusterId: string;
@@ -38,6 +41,12 @@ const ClusterPage: React.FC<RouteComponentProps<MatchParams>> = ({ match }) => {
   const { clusterId } = match.params;
   const fetchCluster = useFetchCluster(clusterId);
   const { cluster, uiState, errorDetail } = useClusterPolling(clusterId);
+  const {
+    infraEnv,
+    isLoading: infraEnvLoading,
+    error: infraEnvError,
+    updateInfraEnv,
+  } = useInfraEnv(clusterId);
   const errorStateActions = [];
   if (!isSingleClusterMode()) {
     errorStateActions.push(
@@ -50,7 +59,7 @@ const ClusterPage: React.FC<RouteComponentProps<MatchParams>> = ({ match }) => {
       </Button>,
     );
   }
-  const getContent = (cluster: Cluster) => {
+  const getContent = (cluster: Cluster, infraEnv: InfraEnv) => {
     if (cluster.status === 'adding-hosts') {
       return (
         <AddHostsContextProvider cluster={cluster}>
@@ -94,7 +103,13 @@ const ClusterPage: React.FC<RouteComponentProps<MatchParams>> = ({ match }) => {
             </TextContent>
           </PageSection>
           <PageSection variant={PageSectionVariants.light}>
-            <ClusterWizard cluster={cluster} />
+            <ClusterWizardContextProvider cluster={cluster} infraEnv={infraEnv}>
+              <ClusterWizard
+                cluster={cluster}
+                infraEnv={infraEnv}
+                updateInfraEnv={updateInfraEnv}
+              />
+            </ClusterWizardContextProvider>
           </PageSection>
         </>
       );
@@ -107,7 +122,7 @@ const ClusterPage: React.FC<RouteComponentProps<MatchParams>> = ({ match }) => {
     </PageSection>
   );
 
-  if (uiState === ResourceUIState.LOADING) {
+  if (uiState === ResourceUIState.LOADING || infraEnvLoading) {
     return loadingUI;
   }
 
@@ -129,6 +144,14 @@ const ClusterPage: React.FC<RouteComponentProps<MatchParams>> = ({ match }) => {
     );
   }
 
+  if (infraEnvError) {
+    return (
+      <PageSection variant={PageSectionVariants.light} isFilled>
+        <ErrorState title="Failed to fetch the infra env" actions={errorStateActions} />
+      </PageSection>
+    );
+  }
+
   const errorUI = (
     <PageSection variant={PageSectionVariants.light} isFilled>
       <ErrorState
@@ -138,13 +161,13 @@ const ClusterPage: React.FC<RouteComponentProps<MatchParams>> = ({ match }) => {
     </PageSection>
   );
 
-  if (cluster) {
+  if (cluster && infraEnv) {
     return (
       <AlertsContextProvider>
         <ModalDialogsContextProvider>
           <ClusterDefaultConfigurationProvider loadingUI={loadingUI} errorUI={errorUI}>
             <FeatureSupportLevelProvider loadingUi={loadingUI} cluster={cluster}>
-              {getContent(cluster)}
+              {getContent(cluster, infraEnv)}
               <CancelInstallationModal />
               <ResetClusterModal />
               <DiscoveryImageModal />
